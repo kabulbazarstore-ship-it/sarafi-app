@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>صرافی هوشمند Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d4af37">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
+    <style>
+        :root{--bg-body:#06130e;--bg-panel:#0d2118;--bg-card:#143024;--bg-input:#0a1a12;--gold:#d4af37;--gold-light:#f3d58b;--text-main:#fff;--text-muted:#8c9dae;--border:rgba(212,175,55,0.2);--shadow:0 8px 25px rgba(0,0,0,0.5);--success:#2ed573;--danger:#ff4757;--info:#3498db;--dropdown-bg:#0d2118;}
+        body.light-mode{--bg-body:#f4f7f6;--bg-panel:#fff;--bg-card:#f8fcfb;--bg-input:#edf2f0;--gold:#b8860b;--gold-light:#d4af37;--text-main:#1c2b26;--text-muted:#6c757d;--border:#dce6e1;--shadow:0 8px 25px rgba(0,0,0,0.06);--dropdown-bg:#fff;}
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Vazirmatn',Tahoma,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
+        body{background:var(--bg-body);color:var(--text-main);min-height:100vh;display:flex;justify-content:center;overflow-x:hidden;transition:.3s;}
+        .app-container{width:100%;max-width:500px;padding:15px 15px 160px;display:flex;flex-direction:column;position:relative;}
+
+        /* Login & Loading */
+        .login-screen{position:fixed;inset:0;background:var(--bg-body);z-index:20000;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;}
+        .login-box{background:var(--bg-panel);border:1px solid var(--gold);border-radius:20px;padding:30px 20px;width:100%;max-width:400px;box-shadow:var(--shadow);text-align:center;}
+        .login-icon{width:60px;height:60px;margin:0 auto 15px;stroke:var(--gold);fill:none;stroke-width:2;}
+        .login-title{font-size:22px;font-weight:bold;color:var(--gold);margin-bottom:25px;}
+        .login-input{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text-main);font-size:14px;margin-bottom:15px;outline:none;text-align:left;direction:ltr;}
+        .login-input:focus{border-color:var(--gold);}
+        .login-btn{width:100%;padding:15px;border-radius:10px;background:linear-gradient(90deg,var(--gold-light),var(--gold));color:#000;font-weight:bold;font-size:16px;border:none;cursor:pointer;margin-top:10px;}
+        .login-error{color:var(--danger);font-size:12px;margin-top:15px;display:none;}
+        #loading-overlay { position: fixed; inset: 0; background: var(--bg-body); z-index: 99999; display: none; justify-content: center; align-items: center; flex-direction: column; gap: 15px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* UI */
+        .datetime-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow);}
+        .dt-content{display:flex;flex-direction:column;gap:4px;}
+        .dt-main{font-size:16px;font-weight:800;color:var(--gold);}
+        .dt-sub{font-size:11px;color:var(--text-muted);}
+        .dt-icon{width:44px;height:44px;background:var(--info);border-radius:12px;display:flex;justify-content:center;align-items:center;color:#fff;font-size:20px;font-weight:bold;}
+
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
+        .header-title{color:var(--gold);font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px;}
+        .header-title svg{width:26px;height:26px;fill:none;stroke:var(--gold);stroke-width:2;}
+        .theme-btn{background:var(--bg-card);border:1px solid var(--border);color:var(--gold);width:38px;height:38px;border-radius:50%;display:flex;justify-content:center;align-items:center;cursor:pointer;box-shadow:var(--shadow);}
+        .theme-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;}
+
+        .live-rate-bar{background:linear-gradient(135deg,var(--bg-card),var(--bg-panel));border:1px solid var(--border);border-radius:14px;padding:12px 15px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow);border-right:4px solid var(--info);}
+        .live-rate-info{display:flex;flex-direction:column;gap:3px;}
+        .live-rate-label{font-size:11px;color:var(--text-muted);}
+        .live-rate-val{font-size:18px;font-weight:bold;color:var(--info);}
+        .live-rate-status{font-size:10px;color:var(--text-muted);}
+        .live-rate-btn{background:rgba(52,152,219,.15);border:1px solid var(--info);color:var(--info);padding:7px 12px;border-radius:8px;font-size:11px;font-weight:bold;cursor:pointer;}
+
+        .dash-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px;}
+        .bal-card{background:linear-gradient(145deg,var(--bg-card),var(--bg-panel));border:1px solid var(--border);border-radius:16px;padding:15px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+        .bal-card::before{content:'';position:absolute;top:0;right:0;width:4px;height:100%;background:var(--gold);}
+        .bal-card.usd-card::before{background:var(--info);}
+        .bal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+        .bal-title{font-size:11px;color:var(--text-muted);}
+        .btn-add{background:rgba(212,175,55,.1);border:1px solid var(--gold);color:var(--gold);width:24px;height:24px;border-radius:50%;display:flex;justify-content:center;align-items:center;cursor:pointer;font-size:16px;font-weight:bold;}
+        .bal-amount{font-size:18px;font-weight:bold;display:flex;align-items:baseline;gap:5px;}
+        .bal-amount span{font-size:11px;color:var(--gold);}
+
+        #other-balances{display:none;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:15px;}
+        .mini-bal{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center;}
+        .mini-bal .code{font-size:10px;color:var(--text-muted);}
+        .mini-bal .amt{font-size:13px;font-weight:bold;color:var(--gold);}
+
+        /* Rates Grid */
+        .rates-grid-container{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:15px;box-shadow:var(--shadow);}
+        .rates-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        .rates-title{font-size:13px;font-weight:bold;color:var(--gold);}
+        .btn-mini-refresh{background:none;border:none;color:var(--info);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:5px;}
+        .btn-mini-refresh svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+        .rates-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(85px, 1fr));gap:8px;max-height:220px;overflow-y:auto;padding-right:5px;}
+        .rate-box{background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
+        .rate-box .flag-icon{width:24px;height:16px;object-fit:cover;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+        .rate-box .sym{font-size:11px;font-weight:bold;color:var(--gold);}
+        .rate-box .val{font-size:11px;color:var(--text-main);direction:ltr;font-weight:bold;}
+
+        .profit-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow);border-right:4px solid var(--success);}
+        .profit-info{display:flex;flex-direction:column;}
+        .profit-title{font-size:11px;color:var(--text-muted);}
+        .profit-val{font-size:16px;font-weight:bold;color:var(--success);}
+        .profit-icon svg{width:30px;height:30px;fill:none;stroke:var(--success);stroke-width:2;}
+
+        .action-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:25px;}
+        .act-btn{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px 5px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-main);cursor:pointer;box-shadow:var(--shadow);transition:.2s;}
+        .act-btn:active{transform:scale(.95);border-color:var(--gold);}
+        .act-btn svg{width:24px;height:24px;fill:none;stroke:var(--gold-light);stroke-width:2;}
+        .act-btn span{font-size:10px;font-weight:bold;text-align:center;}
+
+        .search-box{position:relative;margin-bottom:15px;}
+        .search-box input{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px 40px 12px 15px;color:var(--text-main);font-size:13px;outline:none;}
+        .search-box input:focus{border-color:var(--gold);}
+        .search-box svg{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:2;}
+
+        .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+        .section-title{font-size:16px;font-weight:bold;color:var(--gold);display:flex;align-items:center;gap:8px;}
+        .section-title svg{width:20px;height:20px;stroke:var(--gold);fill:none;stroke-width:2;}
+        .btn-tab{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;}
+        .btn-tab.active{background:var(--gold);color:#000;border-color:var(--gold);}
+
+        .list-container{display:flex;flex-direction:column;gap:10px;}
+        .item-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:15px;box-shadow:var(--shadow);}
+        .item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px dashed var(--border);padding-bottom:8px;}
+        .item-title{font-weight:bold;font-size:14px;color:var(--gold);}
+        .item-amount{font-weight:bold;font-size:14px;}
+        .item-amount.red{color:var(--danger);} .item-amount.green{color:var(--success);}
+        .item-body{font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;margin-bottom:8px;}
+        .item-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+        .btn-sm{padding:5px 10px;font-size:11px;border-radius:6px;border:none;cursor:pointer;font-weight:bold;display:flex;align-items:center;gap:4px;}
+        .btn-sm svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;}
+        .btn-edit{background:rgba(243,156,18,.15);color:var(--gold);border:1px solid var(--gold);}
+        .btn-del{background:rgba(255,71,87,.15);color:var(--danger);border:1px solid var(--danger);}
+        .btn-pay{background:rgba(46,213,115,.15);color:var(--success);border:1px solid var(--success);}
+        .btn-info{background:rgba(52,152,219,.15);color:var(--info);border:1px solid var(--info);}
+
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(5px);display:none;justify-content:center;align-items:center;z-index:2000;padding:15px;}
+        .modal-overlay.active{display:flex;}
+        .modal-box{background:var(--bg-panel);border:1px solid var(--gold);border-radius:20px;padding:20px;width:100%;max-width:420px;box-shadow:var(--shadow);position:relative;animation:popIn .3s;max-height:90vh;overflow-y:auto;}
+        @keyframes popIn{from{transform:scale(.95);opacity:0;}to{transform:scale(1);opacity:1;}}
+        .modal-close{position:absolute;top:15px;left:15px;background:none;border:none;color:var(--danger);cursor:pointer;z-index:10;display:flex;}
+        .modal-close svg{width:24px;height:24px;stroke:currentColor;stroke-width:2;}
+        .modal-title{color:var(--gold);font-size:17px;font-weight:bold;text-align:center;margin-bottom:20px;border-bottom:1px dashed var(--border);padding-bottom:10px;}
+
+        .form-group{margin-bottom:12px;}
+        .form-group label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:6px;}
+        .form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text-main);font-size:14px;outline:none;}
+        .form-group input:focus,.form-group select:focus{border-color:var(--gold);}
+        .btn-submit{width:100%;padding:14px;border-radius:10px;background:linear-gradient(90deg,var(--gold-light),var(--gold));color:#000;font-weight:bold;font-size:15px;border:none;cursor:pointer;margin-top:10px;display:flex;justify-content:center;align-items:center;gap:8px;}
+        .btn-submit svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;}
+        .btn-submit:disabled{opacity:.6;cursor:not-allowed;}
+        .btn-cancel{width:100%;padding:12px;border-radius:10px;background:var(--bg-card);color:var(--text-muted);font-weight:bold;border:1px solid var(--border);cursor:pointer;margin-top:8px;}
+
+        .custom-dropdown{position:relative;width:100%;user-select:none;margin-bottom:12px;}
+        .dd-trigger{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text-main);font-size:14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+        .dd-trigger.active{border-color:var(--gold);}
+        .dd-trigger svg{width:16px;height:16px;stroke:var(--gold);fill:none;stroke-width:2;transition:.3s;}
+        .dd-trigger.active svg{transform:rotate(180deg);}
+        .dd-menu{position:absolute;top:105%;left:0;right:0;background:var(--dropdown-bg);border:1px solid var(--gold);border-radius:10px;box-shadow:var(--shadow);z-index:100;display:none;flex-direction:column;max-height:200px;overflow-y:auto;}
+        .dd-menu.active{display:flex;}
+        .dd-item{padding:12px;font-size:13px;cursor:pointer;color:var(--text-main);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+        .dd-item:hover{background:rgba(212,175,55,.1);color:var(--gold);}
+        .dd-item img{width:20px;height:14px;margin-left:8px;border-radius:2px;}
+
+        .calc-screen{background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:15px;text-align:left;font-size:28px;font-weight:bold;color:var(--gold);margin-bottom:15px;min-height:70px;direction:ltr;overflow-x:auto;}
+        .calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+        .calc-btn{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:15px 0;font-size:18px;font-weight:bold;color:var(--text-main);cursor:pointer;}
+        .calc-btn.op{color:var(--gold);} .calc-btn.eq{background:var(--gold);color:#000;} .calc-btn.clr{background:var(--danger);color:#fff;}
+
+        /* Alert & Confirm Modals */
+        .alert-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:9999;display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:.3s;}
+        .alert-overlay.active{opacity:1;pointer-events:auto;}
+        .alert-box{background:var(--bg-panel);border:1px solid var(--gold);border-radius:16px;padding:25px 20px;width:85%;max-width:340px;text-align:center;box-shadow:var(--shadow);}
+        .alert-icon{margin-bottom:15px;display:flex;justify-content:center;}
+        .alert-icon svg{width:40px;height:40px;stroke-width:2;}
+        .alert-title{color:var(--gold);font-size:18px;font-weight:bold;margin-bottom:10px;}
+        .alert-msg{color:var(--text-main);font-size:13px;margin-bottom:20px;white-space:pre-line;line-height:1.6;}
+        .alert-btns{display:flex;gap:10px;justify-content:center;}
+        .alert-btns .btn-submit, .alert-btns .btn-cancel{margin-top:0;}
+
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-panel);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0;z-index:1000;max-width:500px;margin:0 auto;box-shadow:0 -5px 20px rgba(0,0,0,.3);}
+        .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;padding:6px 2px;cursor:pointer;color:var(--text-muted);border:none;background:none;font-family:inherit;}
+        .nav-item svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;}
+        .nav-item span{font-size:9px;font-weight:bold;}
+        .nav-item.active{color:var(--gold);}
+
+        .page{display:none;animation:fadeIn .3s;}
+        .page.active{display:block;}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+        .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;}
+        .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow);}
+        .stat-card .label{font-size:11px;color:var(--text-muted);margin-bottom:5px;}
+        .stat-card .value{font-size:16px;font-weight:bold;color:var(--gold);}
+        .stat-card.success .value{color:var(--success);}
+        .stat-card.danger .value{color:var(--danger);}
+
+        .report-filter{display:flex;gap:8px;margin-bottom:15px;}
+        .report-filter .btn-tab{flex:1;padding:10px;text-align:center;}
+
+        .settings-group{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:15px;box-shadow:var(--shadow);}
+        .settings-item{display:flex;justify-content:space-between;align-items:center;padding:14px 12px;border-bottom:1px solid var(--border);cursor:pointer;}
+        .settings-item:last-child{border-bottom:none;}
+        .settings-item .icon{width:32px;height:32px;background:rgba(212,175,55,.1);border-radius:8px;display:flex;justify-content:center;align-items:center;margin-left:10px;}
+        .settings-item .icon svg{width:18px;height:18px;fill:none;stroke:var(--gold);stroke-width:2;}
+        .settings-item .text{flex:1;font-size:13px;font-weight:bold;}
+        .settings-item .text small{display:block;font-size:10px;color:var(--text-muted);font-weight:normal;margin-top:2px;}
+        .settings-item .arrow{color:var(--text-muted);font-size:16px;}
+
+        .pin-screen{display:none;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;padding:30px;position:fixed;inset:0;background:var(--bg-body);z-index:10000;}
+        .pin-title{color:var(--gold);font-size:22px;font-weight:bold;margin-bottom:30px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+        .pin-title svg{width:40px;height:40px;stroke:currentColor;fill:none;stroke-width:2;}
+        .pin-dots{display:flex;gap:15px;margin-bottom:30px;}
+        .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--gold);background:transparent;}
+        .pin-dot.filled{background:var(--gold);}
+        .pin-pad{display:grid;grid-template-columns:repeat(3,70px);gap:15px;}
+        .pin-key{width:70px;height:70px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);color:var(--text-main);font-size:22px;font-weight:bold;cursor:pointer;}
+        .pin-key:active{background:var(--gold);color:#000;}
+        .pin-key.blank{background:transparent;border:none;cursor:default;}
+
+        .converter-box{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:15px;box-shadow:var(--shadow);}
+        .converter-row{display:flex;flex-direction:column;gap:8px;margin-bottom:15px;}
+        .converter-swap{text-align:center;margin:10px 0;}
+        .converter-swap button{background:var(--gold);border:none;color:#000;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;font-weight:bold;}
+
+        /* استایل بخش ارتباطات */
+        .social-links{display:flex;justify-content:center;flex-wrap:wrap;gap:15px;padding:15px 0;}
+        .social-links a{display:flex;justify-content:center;align-items:center;width:45px;height:45px;border-radius:50%;background:var(--bg-input);border:1px solid var(--border);color:var(--text-muted);transition:0.3s;text-decoration:none;}
+        .social-links a:hover{color:var(--gold);border-color:var(--gold);transform:translateY(-3px);}
+        .social-links svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+        @media print {body * {visibility:hidden;} .print-receipt, .print-receipt *{visibility:visible;} .print-receipt{position:absolute;left:0;top:0;width:100%;padding:20px;background:#fff;color:#000;}}
+    </style>
+</head>
+<body>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div style="color:var(--gold); font-weight:bold;">اتصال امن به سرور...</div>
+    </div>
+
+    <div class="login-screen" id="login-screen">
+        <div class="login-box">
+            <svg class="login-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div class="login-title">ورود به صرافی هوشمند</div>
+            <input type="email" id="login-email" class="login-input" placeholder="ایمیل ادمین">
+            <input type="password" id="login-password" class="login-input" placeholder="رمز عبور">
+            <button class="login-btn" id="login-btn" onclick="loginUser()">ورود امن</button>
+            <div class="login-error" id="login-error">ایمیل یا رمز عبور اشتباه است!</div>
+        </div>
+    </div>
+
+    <div class="pin-screen" id="pin-screen">
+        <div class="pin-title">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            رمز برنامه را وارد کنید
+        </div>
+        <div class="pin-dots" id="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+        <div class="pin-pad">
+            <button class="pin-key" onclick="pinInput('1')">1</button>
+            <button class="pin-key" onclick="pinInput('2')">2</button>
+            <button class="pin-key" onclick="pinInput('3')">3</button>
+            <button class="pin-key" onclick="pinInput('4')">4</button>
+            <button class="pin-key" onclick="pinInput('5')">5</button>
+            <button class="pin-key" onclick="pinInput('6')">6</button>
+            <button class="pin-key" onclick="pinInput('7')">7</button>
+            <button class="pin-key" onclick="pinInput('8')">8</button>
+            <button class="pin-key" onclick="pinInput('9')">9</button>
+            <button class="pin-key blank"></button>
+            <button class="pin-key" onclick="pinInput('0')">0</button>
+            <button class="pin-key" onclick="pinDel()">⌫</button>
+        </div>
+        <div style="margin-top:20px; color:var(--text-muted); font-size:12px; cursor:pointer;" onclick="forgotPin()">فراموشی رمز؟</div>
+    </div>
+
+    <div class="alert-overlay" id="custom-alert">
+        <div class="alert-box">
+            <div class="alert-icon" id="alert-icon">
+                <svg viewBox="0 0 24 24" stroke="var(--gold)" fill="none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="alert-title" id="alert-title">عنوان</div>
+            <div class="alert-msg" id="alert-msg">پیام</div>
+            <button class="btn-submit" style="margin-top:0;" onclick="document.getElementById('custom-alert').classList.remove('active')">تایید</button>
+        </div>
+    </div>
+
+    <div class="alert-overlay" id="custom-confirm">
+        <div class="alert-box">
+            <div class="alert-title" id="confirm-title">عنوان</div>
+            <div class="alert-msg" id="confirm-msg">پیام</div>
+            <div class="alert-btns">
+                <button class="btn-cancel" style="margin-top:0;" onclick="closeConfirm(false)">خیر</button>
+                <button class="btn-submit" style="margin-top:0;" onclick="closeConfirm(true)">بله</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="header-title">
+                <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                صرافی هوشمند Pro
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()">
+                <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+        </header>
+
+        <div class="page active" id="page-home">
+            <div class="datetime-card">
+                <div class="dt-content">
+                    <div class="dt-main" id="dt-shamsi">---</div>
+                    <div class="dt-sub" id="dt-other">---</div>
+                </div>
+                <div class="dt-icon" id="dt-day">---</div>
+            </div>
+
+            <div class="live-rate-bar">
+                <div class="live-rate-info">
+                    <div class="live-rate-label">نرخ مرجع دالر (USD/AFN)</div>
+                    <div class="live-rate-val" id="live-usd-rate">---</div>
+                    <div class="live-rate-status" id="live-rate-status">در حال دریافت...</div>
+                </div>
+                <button class="live-rate-btn" onclick="fetchLiveRates()">به‌روزرسانی</button>
+            </div>
+
+            <div class="dash-top">
+                <div class="bal-card">
+                    <div class="bal-header"><div class="bal-title">موجودی افغانی</div><button class="btn-add" onclick="openAddBalance('AFN')">+</button></div>
+                    <div class="bal-amount"><span id="dash-afn">0</span> <span>AFN</span></div>
+                </div>
+                <div class="bal-card usd-card">
+                    <div class="bal-header"><div class="bal-title">موجودی دالر</div><button class="btn-add" onclick="openAddBalance('USD')">+</button></div>
+                    <div class="bal-amount"><span id="dash-usd">0</span> <span>USD</span></div>
+                </div>
+            </div>
+
+            <div id="other-balances"></div>
+
+            <!-- بخش نرخ ارزها با پرچم -->
+            <div class="rates-grid-container">
+                <div class="rates-header">
+                    <div class="rates-title">نرخ لحظه‌ای ۳۰ ارز (به افغانی)</div>
+                    <button class="btn-mini-refresh" onclick="fetchLiveRates()" title="به‌روزرسانی نرخ‌ها">
+                        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    </button>
+                </div>
+                <div class="rates-grid" id="rates-grid">
+                    <div style="text-align:center; width:100%; font-size:11px; color:var(--text-muted); padding:15px 0;">در حال دریافت نرخ‌ها...</div>
+                </div>
+            </div>
+
+            <div class="profit-card">
+                <div class="profit-info"><div class="profit-title">سود خالص از معاملات</div><div class="profit-val"><span id="dash-profit">0</span> افغانی</div></div>
+                <div class="profit-icon"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+            </div>
+
+            <div class="action-grid">
+                <div class="act-btn" onclick="openExchangeModal('buy')"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span>خرید</span></div>
+                <div class="act-btn" onclick="openExchangeModal('sell')"><svg viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg><span>فروش</span></div>
+                <div class="act-btn" onclick="openHawalaModal()"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><span>حواله</span></div>
+                <div class="act-btn" onclick="openLoanModal()"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg><span>قرض</span></div>
+                <div class="act-btn" onclick="openModal('modal-expense')"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>هزینه</span></div>
+                <div class="act-btn" onclick="openModal('modal-calc')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg><span>حساب</span></div>
+                <div class="act-btn" onclick="switchPage('transactions')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>تاریخچه</span></div>
+                <div class="act-btn" onclick="switchPage('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>تنظیمات</span></div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="global-search" placeholder="جستجو در حواله و قرض..." oninput="filterItems()">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title" id="list-title">حواله‌ها</div>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-tab active" id="tab-hawala" onclick="switchTab('hawala')">حواله</button>
+                    <button class="btn-tab" id="tab-loan" onclick="switchTab('loan')">قرض</button>
+                </div>
+            </div>
+            <div class="list-container" id="main-list"></div>
+        </div>
+
+        <div class="page" id="page-transactions">
+            <div class="section-header"><div class="section-title">تاریخچهٔ معاملات</div></div>
+            <div class="stat-grid">
+                <div class="stat-card success"><div class="label">کل خرید</div><div class="value" id="stat-buys">0</div></div>
+                <div class="stat-card danger"><div class="label">کل فروش</div><div class="value" id="stat-sells">0</div></div>
+                <div class="stat-card"><div class="label">تعداد معاملات</div><div class="value" id="stat-count">0</div></div>
+                <div class="stat-card success"><div class="label">کل سود</div><div class="value" id="stat-profit">0</div></div>
+            </div>
+            <div class="list-container" id="transactions-list"></div>
+        </div>
+
+        <div class="page" id="page-reports">
+            <div class="section-header"><div class="section-title">گزارش‌ها</div></div>
+            <div class="report-filter">
+                <button class="btn-tab active" onclick="setReportPeriod('today', this)">امروز</button>
+                <button class="btn-tab" onclick="setReportPeriod('week', this)">هفته</button>
+                <button class="btn-tab" onclick="setReportPeriod('month', this)">ماه</button>
+                <button class="btn-tab" onclick="setReportPeriod('all', this)">همه</button>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-card success"><div class="label">سود دوره</div><div class="value" id="rep-profit">0</div></div>
+                <div class="stat-card"><div class="label">تعداد معامله</div><div class="value" id="rep-count">0</div></div>
+                <div class="stat-card danger"><div class="label">هزینه‌ها</div><div class="value" id="rep-expenses">0</div></div>
+                <div class="stat-card"><div class="label">سود خالص</div><div class="value" id="rep-net">0</div></div>
+            </div>
+            <div class="list-container" id="reports-detail"></div>
+            <button class="btn-submit" onclick="exportReportCSV()" style="margin-top:20px;">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                خروجی CSV
+            </button>
+            <button class="btn-cancel" onclick="window.print()" style="display:flex; justify-content:center; align-items:center; gap:8px;">
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                چاپ گزارش
+            </button>
+        </div>
+
+        <div class="page" id="page-converter">
+            <div class="section-header"><div class="section-title">مبدل ارز</div></div>
+            <div class="converter-box">
+                <div class="converter-row">
+                    <label style="font-size:12px;color:var(--text-muted);">از ارز</label>
+                    <div class="custom-dropdown" id="dd-conv-from">
+                        <div class="dd-trigger" onclick="toggleDropdown('dd-conv-from')"><span id="val-conv-from">دالر آمریکا (USD)</span><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                        <div class="dd-menu" id="menu-conv-from"></div>
+                        <input type="hidden" id="conv-from" value="USD">
+                    </div>
+                    <input type="text" inputmode="decimal" id="conv-amount" placeholder="مبلغ" oninput="doConvert()" style="width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text-main);font-size:16px;outline:none;">
+                </div>
+                <div class="converter-swap"><button onclick="swapConverter()">⇅</button></div>
+                <div class="converter-row">
+                    <label style="font-size:12px;color:var(--text-muted);">به ارز</label>
+                    <div class="custom-dropdown" id="dd-conv-to">
+                        <div class="dd-trigger" onclick="toggleDropdown('dd-conv-to')"><span id="val-conv-to">افغانی (AFN)</span><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                        <div class="dd-menu" id="menu-conv-to"></div>
+                        <input type="hidden" id="conv-to" value="AFN">
+                    </div>
+                    <div id="conv-result" style="background:var(--bg-input);border:1px solid var(--gold);border-radius:10px;padding:16px;font-size:22px;font-weight:bold;color:var(--gold);text-align:center;">0</div>
+                </div>
+                <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px;" id="conv-rate-info">نرخ: ---</div>
+            </div>
+            <button class="live-rate-btn" onclick="fetchLiveRates()" style="width:100%;padding:12px;">به‌روزرسانی نرخ</button>
+        </div>
+
+        <div class="page" id="page-settings">
+            <div class="section-header"><div class="section-title">تنظیمات</div></div>
+            
+            <div class="settings-group">
+                <div class="settings-item" onclick="toggleTheme()">
+                    <div class="icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+                    <div class="text">تم روشن / تاریک<small>تغییر ظاهر برنامه</small></div>
+                    <div class="arrow">›</div>
+                </div>
+                <div class="settings-item" onclick="openPinSetup()">
+                    <div class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+                    <div class="text" id="pin-setting-text">قفل برنامه (PIN)<small>غیرفعال</small></div>
+                    <div class="arrow">›</div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-item" onclick="backupData()">
+                    <div class="icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+                    <div class="text">پشتیبان‌گیری<small>دانلود فایل اطلاعات</small></div>
+                    <div class="arrow">›</div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-item" onclick="closeDay()">
+                    <div class="icon"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+                    <div class="text">بستن صندوق<small>گزارش پایان روز</small></div>
+                    <div class="arrow">›</div>
+                </div>
+                <div class="settings-item" onclick="logoutUser()">
+                    <div class="icon" style="background:rgba(255,71,87,.1);"><svg viewBox="0 0 24 24" style="stroke:var(--danger);"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+                    <div class="text" style="color:var(--danger);">خروج از حساب<small>خروج امن از برنامه</small></div>
+                    <div class="arrow">›</div>
+                </div>
+            </div>
+
+            <div class="settings-group" style="margin-top:25px;">
+                <div style="padding:15px; font-size:14px; font-weight:bold; color:var(--gold); text-align:center;">ارتباط با ما</div>
+                <div class="social-links">
+                    <a href="https://wa.me/93744002790" target="_blank" title="واتساپ">
+                        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/_aqazada313" target="_blank" title="اینستاگرام">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    </a>
+                    <a href="https://www.facebook.com/share/1A1mUAp2jK/" target="_blank" title="فیسبوک">
+                        <svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                    </a>
+                    <a href="mailto:hussaini11855@gmail.com" title="ایمیل">
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </a>
+                    <a href="tel:0744002790" title="تماس تلفنی">
+                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </a>
+                </div>
+                <div style="text-align:center; font-size:12px; color:var(--text-muted); padding-bottom:15px;">تهیه شده توسط S.Hussaini</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-page="home" onclick="switchPage('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>خانه</span></button>
+        <button class="nav-item" data-page="transactions" onclick="switchPage('transactions')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>تاریخچه</span></button>
+        <button class="nav-item" data-page="reports" onclick="switchPage('reports')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>گزارش</span></button>
+        <button class="nav-item" data-page="converter" onclick="switchPage('converter')"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span>مبدل</span></button>
+        <button class="nav-item" data-page="settings" onclick="switchPage('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>تنظیمات</span></button>
+    </nav>
+
+    <div class="modal-overlay" id="modal-add-balance">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-add-balance')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title" id="add-bal-title">افزایش موجودی</div>
+            <input type="hidden" id="add-bal-currency" value="AFN">
+            <div class="form-group"><label>مبلغ (عدد)</label><input type="text" inputmode="decimal" id="add-bal-amount" placeholder="مثلا 10000"></div>
+            <button class="btn-submit" id="btn-add-bal" onclick="saveAddBalance()">ثبت افزایش</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-hawala">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-hawala')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title" id="hawala-modal-title">ثبت حواله جدید</div>
+            <input type="hidden" id="hawala-edit-id">
+            <div class="form-group"><label>نمبر حواله</label><input type="text" id="hawala-num" placeholder="مثلا 123456"></div>
+            <div class="form-group"><label>گیرنده</label><input type="text" id="hawala-receiver" placeholder="نام شخص"></div>
+            <div class="form-group"><label>مبلغ</label><input type="text" inputmode="decimal" id="hawala-amount" placeholder="مبلغ"></div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">واحد پول</label>
+            <div class="custom-dropdown" id="dd-hawala-curr">
+                <div class="dd-trigger" onclick="toggleDropdown('dd-hawala-curr')"><span id="val-hawala-curr">افغانی (AFN)</span><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                <div class="dd-menu" id="menu-hawala-curr"></div>
+                <input type="hidden" id="hawala-currency" value="AFN">
+            </div>
+            <button class="btn-submit" id="btn-save-hawala" onclick="saveHawala()">ثبت حواله</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-loan">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-loan')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title" id="loan-modal-title">ثبت قرض جدید</div>
+            <input type="hidden" id="loan-edit-id">
+            <div class="form-group"><label>نام شخص</label><input type="text" id="loan-name" placeholder="نام"></div>
+            <div class="form-group"><label>مبلغ</label><input type="text" inputmode="decimal" id="loan-amount" placeholder="مبلغ"></div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">واحد پول</label>
+            <div class="custom-dropdown" id="dd-loan-curr">
+                <div class="dd-trigger" onclick="toggleDropdown('dd-loan-curr')"><span id="val-loan-curr">افغانی (AFN)</span><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                <div class="dd-menu" id="menu-loan-curr"></div>
+                <input type="hidden" id="loan-currency" value="AFN">
+            </div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">نوعیت</label>
+            <div class="custom-dropdown" id="dd-loan-type">
+                <div class="dd-trigger" onclick="toggleDropdown('dd-loan-type')"><span id="val-loan-type">طلب دارم</span><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                <div class="dd-menu">
+                    <div class="dd-item" onclick="selectOption('dd-loan-type','owed','طلب دارم')">طلب دارم</div>
+                    <div class="dd-item" onclick="selectOption('dd-loan-type','owe','بدهکارم')">بدهکارم</div>
+                </div>
+                <input type="hidden" id="loan-type" value="owed">
+            </div>
+            <button class="btn-submit" id="btn-save-loan" onclick="saveLoan()">ثبت قرض</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-receipt">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-receipt')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title">دادن رسید</div>
+            <input type="hidden" id="receipt-loan-id">
+            <div class="form-group"><label>مبلغ پرداختی</label><input type="text" inputmode="decimal" id="receipt-amount" placeholder="مبلغ"></div>
+            <button class="btn-submit" id="btn-save-receipt" onclick="saveReceipt()">ثبت رسید</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-exchange">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-exchange')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title" id="exchange-title">خرید</div>
+            <input type="hidden" id="exchange-type" value="buy">
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">انتخاب ارز</label>
+            <div class="custom-dropdown" id="dd-ex-curr">
+                <div class="dd-trigger" onclick="toggleDropdown('dd-ex-curr')"><span id="val-ex-curr">دالر آمریکا (USD)</span><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+                <div class="dd-menu" id="menu-ex-curr"></div>
+                <input type="hidden" id="ex-currency" value="USD">
+            </div>
+            <div class="form-group"><label>نرخ تبادله (افغانی)</label><input type="text" inputmode="decimal" id="ex-rate" oninput="calcExchange()"></div>
+            <div class="form-group"><label>مبلغ ارز</label><input type="text" inputmode="decimal" id="ex-amount" oninput="calcExchange()"></div>
+            <div class="form-group"><label>کل افغانی</label><input type="text" id="ex-total" readonly style="background:var(--bg-panel);"></div>
+            <div class="form-group" style="background:rgba(46,213,115,.1);padding:10px;border-radius:8px;border:1px solid var(--success);">
+                <label style="color:var(--success);font-weight:bold;">سود تخمینی (1%)</label>
+                <div id="ex-profit-preview" style="font-size:16px;font-weight:bold;color:var(--success);">0 افغانی</div>
+            </div>
+            <button class="btn-submit" id="btn-save-exchange" onclick="saveExchange()">ثبت معامله</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-expense">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-expense')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title">ثبت هزینه</div>
+            <div class="form-group"><label>عنوان</label><input type="text" id="expense-title" placeholder="مثلا کرایه دکان"></div>
+            <div class="form-group"><label>مبلغ (افغانی)</label><input type="text" inputmode="decimal" id="expense-amount"></div>
+            <div class="form-group"><label>توضیحات (اختیاری)</label><input type="text" id="expense-note"></div>
+            <button class="btn-submit" id="btn-save-expense" onclick="saveExpense()">ثبت هزینه</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-calc">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-calc')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title">ماشین حساب</div>
+            <div class="calc-screen" id="calc-screen">0</div>
+            <div class="calc-grid">
+                <button class="calc-btn clr" onclick="calcClear()">C</button>
+                <button class="calc-btn op" onclick="calcInput('%')">%</button>
+                <button class="calc-btn op" onclick="calcInput('/')">÷</button>
+                <button class="calc-btn op" onclick="calcInput('*')">×</button>
+                <button class="calc-btn" onclick="calcInput('7')">7</button>
+                <button class="calc-btn" onclick="calcInput('8')">8</button>
+                <button class="calc-btn" onclick="calcInput('9')">9</button>
+                <button class="calc-btn op" onclick="calcInput('-')">-</button>
+                <button class="calc-btn" onclick="calcInput('4')">4</button>
+                <button class="calc-btn" onclick="calcInput('5')">5</button>
+                <button class="calc-btn" onclick="calcInput('6')">6</button>
+                <button class="calc-btn op" onclick="calcInput('+')">+</button>
+                <button class="calc-btn" onclick="calcInput('1')">1</button>
+                <button class="calc-btn" onclick="calcInput('2')">2</button>
+                <button class="calc-btn" onclick="calcInput('3')">3</button>
+                <button class="calc-btn eq" onclick="calcEvaluate()" style="grid-row:span 2;">=</button>
+                <button class="calc-btn" onclick="calcInput('0')" style="grid-column:span 2;">0</button>
+                <button class="calc-btn" onclick="calcInput('.')">.</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-print">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-print')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title">پیش‌نمایش رسید</div>
+            <div id="print-content"></div>
+            <button class="btn-submit" onclick="window.print()">چاپ</button>
+            <button class="btn-cancel" onclick="shareReceipt()">اشتراک‌گذاری</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-pin-setup">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('modal-pin-setup')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-title">تنظیم قفل PIN</div>
+            <div class="form-group"><label>PIN جدید (۴ رقم)</label><input type="password" id="pin-new" maxlength="4" inputmode="numeric"></div>
+            <div class="form-group"><label>تکرار PIN</label><input type="password" id="pin-confirm" maxlength="4" inputmode="numeric"></div>
+            <button class="btn-submit" onclick="savePin()">ذخیره</button>
+            <button class="btn-cancel" onclick="removePin()" id="btn-remove-pin" style="display:none;">حذف PIN</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <script>
+        /* ============================================================
+           ۱. تنظیمات فایربیس
+           ============================================================ */
+        const firebaseConfig = {
+          apiKey: "AIzaSyCHwFhQGmDfbwlcL9jNRIqSaTcWJshduJw",
+          authDomain: "sarafi-4b3c6.firebaseapp.com",
+          databaseURL: "https://sarafi-4b3c6-default-rtdb.firebaseio.com",
+          projectId: "sarafi-4b3c6",
+          storageBucket: "sarafi-4b3c6.firebasestorage.app",
+          messagingSenderId: "937950104885",
+          appId: "1:937950104885:web:1420633a0a2fc8b07c907c",
+          measurementId: "G-QTVJS2F89V"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+        let sarafiRef;
+
+        /* ============================================================
+           ۲. متغیرها و ابزارها
+           ============================================================ */
+        // 🚩 پرچم‌ها با کدهای دو حرفی برای دریافت SVG از flagcdn
+        const currencies = [
+            { code:'AFN', name:'افغانی', flag:'af' }, { code:'USD', name:'دالر', flag:'us' },
+            { code:'EUR', name:'یورو', flag:'eu' }, { code:'IRR', name:'تومان', flag:'ir' },
+            { code:'PKR', name:'روپیه پاکستان', flag:'pk' }, { code:'SAR', name:'ریال سعودی', flag:'sa' },
+            { code:'AED', name:'درهم', flag:'ae' }, { code:'TRY', name:'لیر', flag:'tr' },
+            { code:'CNY', name:'یوان', flag:'cn' }, { code:'INR', name:'روپیه هند', flag:'in' },
+            { code:'GBP', name:'پوند', flag:'gb' }, { code:'CAD', name:'دالر کانادا', flag:'ca' },
+            { code:'AUD', name:'دالر استرالیا', flag:'au' }, { code:'JPY', name:'ین ژاپن', flag:'jp' },
+            { code:'CHF', name:'فرانک سوئیس', flag:'ch' }, { code:'SEK', name:'کرون سوئد', flag:'se' },
+            { code:'NOK', name:'کرون ناروی', flag:'no' }, { code:'DKK', name:'کرون دانمارک', flag:'dk' },
+            { code:'RUB', name:'روبل روسیه', flag:'ru' }, { code:'MYR', name:'رینگت مالزی', flag:'my' },
+            { code:'SGD', name:'دالر سنگاپور', flag:'sg' }, { code:'HKD', name:'دالر هنگ‌کنگ', flag:'hk' },
+            { code:'NZD', name:'دالر نیوزیلند', flag:'nz' }, { code:'THB', name:'بات تایلند', flag:'th' },
+            { code:'IDR', name:'روپیه اندونزی', flag:'id' }, { code:'KRW', name:'وون کره', flag:'kr' },
+            { code:'EGP', name:'پوند مصر', flag:'eg' }, { code:'KWD', name:'دینار کویت', flag:'kw' },
+            { code:'QAR', name:'ریال قطر', flag:'qa' }, { code:'OMR', name:'ریال عمان', flag:'om' }
+        ];
+        
+        let activeTab = 'hawala';
+        let currentLiveRate = null, liveRatesCache = {};
+        let reportPeriod = 'today', pinBuffer = '';
+        let storedPin = localStorage.getItem('sarafi_pin') || null;
+        let calcStr = '';
+
+        function toEnDigits(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/[۰-۹]/g, w => '۰۱۲۳۴۵۶۷۸۹'.indexOf(w)).replace(/[٠-٩]/g, w => '٠١٢٣٤٥٦٧٨٩'.indexOf(w));
+        }
+        const fmt = n => Number(n||0).toLocaleString('fa-AF', {maximumFractionDigits:2});
+        
+        const showAlert = (t,m) => {
+            document.getElementById('alert-title').innerText = t;
+            document.getElementById('alert-msg').innerText = m;
+            document.getElementById('custom-alert').classList.add('active');
+        };
+        
+        let confirmCallback = null;
+        function showConfirm(title, msg, callback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-msg').innerText = msg;
+            document.getElementById('custom-confirm').classList.add('active');
+            confirmCallback = callback;
+        }
+        function closeConfirm(result) {
+            document.getElementById('custom-confirm').classList.remove('active');
+            if (confirmCallback) confirmCallback(result);
+            confirmCallback = null;
+        }
+
+        const openModal = id => document.getElementById(id).classList.add('active');
+        const closeModal = id => document.getElementById(id).classList.remove('active');
+        const toFa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+        const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        function withTimeout(promise, ms = 15000) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('اتصال اینترنت ضعیف است (Timeout)')), ms))
+            ]);
+        }
+
+        /* ============================================================
+           ۳. سیستم لاگین
+           ============================================================ */
+        function loginUser() {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+            const errDiv = document.getElementById('login-error');
+
+            if(!email || !pass) {
+                errDiv.innerText = "لطفاً ایمیل و رمز عبور را وارد کنید.";
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true; btn.innerText = "در حال بررسی..."; errDiv.style.display = 'none';
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => { btn.disabled = false; btn.innerText = "ورود امن"; })
+                .catch((error) => {
+                    btn.disabled = false; btn.innerText = "ورود امن";
+                    errDiv.innerText = "ایمیل یا رمز عبور اشتباه است!";
+                    errDiv.style.display = 'block';
+                });
+        }
+
+        function logoutUser() {
+            showConfirm('خروج از حساب', 'آیا می‌خواهید از حساب خود خارج شوید؟', (res) => {
+                if(res) auth.signOut();
+            });
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('login-screen').style.display = 'none';
+                if(storedPin) document.getElementById('pin-screen').style.display = 'flex';
+                
+                sarafiRef = db.ref('sarafi_data/' + user.uid);
+                
+                Store.init();
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('pin-screen').style.display = 'none';
+                document.getElementById('loading-overlay').style.display = 'none';
+                Store.isReady = false;
+            }
+        });
+
+        /* ============================================================
+           ۴. لایه دیتابیس
+           ============================================================ */
+        const Store = {
+            data: {}, listeners: {}, isReady: false,
+            init() {
+                if(this.isReady) return;
+                document.getElementById('loading-overlay').style.display = 'flex';
+                sarafiRef.on('value', (snapshot) => {
+                    const val = snapshot.val();
+                    if (val) this.data = val;
+                    else {
+                        this.data = { balances: { AFN: 0, USD: 0 }, hawalas: {}, loans: {}, transactions: {}, expenses: {}, profit: 0 };
+                        sarafiRef.set(this.data);
+                    }
+                    if (!this.isReady) {
+                        this.isReady = true;
+                        document.getElementById('loading-overlay').style.display = 'none';
+                        startAppLogic();
+                    }
+                    this.emitAll();
+                }, (error) => {
+                    console.error("Firebase Read Error:", error);
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    showAlert('  خطای دسترسی', ' شما را خوش آمد میگویم   .');
+                });
+            },
+            get(path) {
+                if (!path) return this.data;
+                return path.split('/').filter(Boolean).reduce((o, k) => (o == null ? null : o[k]), this.data);
+            },
+            set(path, val) { sarafiRef.child(path).set(val); },
+            update(path, updates) { sarafiRef.child(path).update(updates); },
+            push(path, val) { const newRef = sarafiRef.child(path).push(); newRef.set(val); return newRef.key; },
+            remove(path) { sarafiRef.child(path).remove(); },
+            addBalance(currency, delta) {
+                const currentBal = this.get('balances/' + currency) || 0;
+                this.set('balances/' + currency, currentBal + delta);
+            },
+            addProfit(delta) {
+                const currentProfit = this.get('profit') || 0;
+                this.set('profit', currentProfit + delta);
+            },
+            on(path, cb) { if (!this.listeners[path]) this.listeners[path] = []; this.listeners[path].push(cb); },
+            emitAll() {
+                Object.keys(this.listeners).forEach(listenerPath => {
+                    const val = this.get(listenerPath);
+                    this.listeners[listenerPath].forEach(cb => { try { cb(val); } catch (e) { console.error(e); } });
+                });
+            }
+        };
+
+        /* ============================================================
+           ۵. نرخ‌های لحظه‌ای و پرچم‌ها
+           ============================================================ */
+        async function fetchLiveRates() {
+            const valEl = document.getElementById('live-usd-rate');
+            const statusEl = document.getElementById('live-rate-status');
+            statusEl.innerText = 'در حال دریافت...';
+            
+            try {
+                const res = await fetch('https://open.er-api.com/v6/latest/USD', { cache: 'no-store' });
+                if(!res.ok) throw new Error('HTTP '+res.status);
+                const data = await res.json();
+                
+                if(data && data.rates && data.rates.AFN) {
+                    const afnRate = data.rates.AFN;
+                    currentLiveRate = afnRate;
+                    liveRatesCache = data.rates;
+                    
+                    valEl.innerText = fmt(Math.round(afnRate*100)/100) + ' افغانی';
+                    statusEl.innerText = 'آخرین به‌روزرسانی: ' + new Date().toLocaleTimeString('fa-AF');
+                    
+                    renderRatesGrid(data.rates);
+                    doConvert();
+                } else throw new Error('bad data');
+            } catch(e) {
+                valEl.innerText = '---';
+                statusEl.innerText = 'نرخ دریافت نشد (دستی وارد کنید)';
+                document.getElementById('rates-grid').innerHTML = '<div style="text-align:center; width:100%; font-size:11px; color:var(--danger); padding:15px 0;">خطا در دریافت نرخ‌ها</div>';
+            }
+        }
+
+        function renderRatesGrid(rates) {
+            const grid = document.getElementById('rates-grid');
+            let html = '';
+            currencies.forEach(c => {
+                if(c.code === 'AFN') return; // افغانی خودش ارز پایه است
+                if(rates[c.code]) {
+                    // محاسبه ارزش ارز به افغانی
+                    const rateToAfn = rates.AFN / rates[c.code];
+                    // استفاده از SVG پرچم از flagcdn
+                    const flagUrl = `https://flagcdn.com/${c.flag}.svg`;
+                    html += `
+                        <div class="rate-box">
+                            <img src="${flagUrl}" class="flag-icon" alt="${c.code}" loading="lazy">
+                            <div class="sym">${c.code}</div>
+                            <div class="val">${fmt(rateToAfn)}</div>
+                        </div>
+                    `;
+                }
+            });
+            grid.innerHTML = html;
+        }
+
+        /* ============================================================
+           ۶. بقیه توابع برنامه
+           ============================================================ */
+        function startAppLogic() {
+            Store.on('balances', vals => {
+                const b = vals || { AFN: 0, USD: 0 };
+                document.getElementById('dash-afn').innerText = fmt(b.AFN || 0);
+                document.getElementById('dash-usd').innerText = fmt(b.USD || 0);
+                const others = Object.keys(b).filter(k => k !== 'AFN' && k !== 'USD' && Number(b[k]) !== 0);
+                const container = document.getElementById('other-balances');
+                if (others.length > 0) {
+                    container.style.display = 'grid';
+                    container.innerHTML = others.map(k => `<div class="mini-bal"><div class="code">${esc(k)}</div><div class="amt">${fmt(b[k])}</div></div>`).join('');
+                } else {
+                    container.style.display = 'none'; container.innerHTML = '';
+                }
+            });
+
+            Store.on('profit', val => { document.getElementById('dash-profit').innerText = fmt(val || 0); });
+            Store.on('hawalas', () => { if(activeTab === 'hawala') filterItems(); });
+            Store.on('loans', () => { if(activeTab === 'loan') filterItems(); });
+            Store.on('transactions', () => {
+                if(document.getElementById('page-transactions').classList.contains('active')) renderTransactions();
+                if(document.getElementById('page-reports').classList.contains('active')) renderReports();
+            });
+            Store.on('expenses', () => {
+                if(document.getElementById('page-reports').classList.contains('active')) renderReports();
+            });
+
+            filterItems(); updateDateTime(); setInterval(updateDateTime, 60000);
+            fetchLiveRates(); setInterval(fetchLiveRates, 600000); // آپدیت خودکار هر ۱۰ دقیقه
+            populateCurrencyMenus();
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('sarafi_theme', isLight ? 'light' : 'dark');
+            document.getElementById('theme-icon').innerHTML = isLight
+                ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>'
+                : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const shamsiMonths = ["حمل","ثور","جوزا","سرطان","اسد","سنبله","میزان","عقرب","قوس","جدی","دلو","حوت"];
+            const qamariMonths = ["محرم","صفر","ربیع‌الاول","ربیع‌الثانی","جمادی‌الاول","جمادی‌الثانی","رجب","شعبان","رمضان","شوال","ذی‌القعده","ذی‌الحجه"];
+            const miladiMonths = ["جنوری","فبروری","مارچ","اپریل","می","جون","جولای","اگست","سپتمبر","اکتوبر","نومبر","دسمبر"];
+            const weekdays = ["یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"];
+
+            let sm = 0, sd = 0, sy = 0;
+            try {
+                const parts = new Intl.DateTimeFormat('en-US-u-ca-persian', { day: 'numeric', month: 'numeric', year: 'numeric' }).formatToParts(now);
+                parts.forEach(p => { if (p.type === 'day') sd = parseInt(p.value); if (p.type === 'month') sm = parseInt(p.value); if (p.type === 'year') sy = parseInt(p.value); });
+            } catch(e) {}
+            if (!sm || !sd || !sy) { const f = gregToJalali(now.getFullYear(), now.getMonth()+1, now.getDate()); sm = f.jm; sd = f.jd; sy = f.jy; }
+            
+            let qm = 0, qd = 0, qy = 0;
+            try {
+                const parts = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { day: 'numeric', month: 'numeric', year: 'numeric' }).formatToParts(now);
+                parts.forEach(p => { if (p.type === 'day') qd = parseInt(p.value); if (p.type === 'month') qm = parseInt(p.value); if (p.type === 'year') qy = parseInt(p.value); });
+            } catch(e) {}
+
+            const shamsiStr = `${weekdays[now.getDay()]} ${toFa(sd)} ${shamsiMonths[sm-1] || ''} ${toFa(sy)}`;
+            const miladiStr = `${toFa(now.getDate())} ${miladiMonths[now.getMonth()]} ${toFa(now.getFullYear())}`;
+            const qamariStr = qm ? `${toFa(qd)} ${qamariMonths[qm-1] || ''} ${toFa(qy)}` : '';
+
+            document.getElementById('dt-shamsi').innerText = shamsiStr;
+            document.getElementById('dt-other').innerText = qamariStr ? `${miladiStr} ، ${qamariStr}` : miladiStr;
+            document.getElementById('dt-day').innerText = toFa(sd);
+        }
+
+        function gregToJalali(gy, gm, gd) {
+            const g = [0,31,59,90,120,151,181,212,243,273,304,334];
+            let jy = (gy <= 1600) ? 0 : 979; gy -= (gy <= 1600) ? 621 : 1600;
+            const gy2 = (gm > 2) ? (gy + 1) : gy;
+            let d = (365*gy) + parseInt((gy2+3)/4) - parseInt((gy2+99)/100) + parseInt((gy2+399)/400) - 80 + gd + g[gm-1];
+            jy += 33 * parseInt(d/12053); d %= 12053; jy += 4 * parseInt(d/1461); d %= 1461;
+            jy += parseInt((d-1)/365); if (d > 365) d = (d-1)%365;
+            const jm = (d < 186) ? 1 + parseInt(d/31) : 7 + parseInt((d-186)/30);
+            const jd = 1 + ((d < 186) ? (d%31) : ((d-186)%30));
+            return { jy, jm, jd };
+        }
+
+        function toggleDropdown(id) {
+            document.querySelectorAll('.dd-menu').forEach(el => { if(el.parentElement.id !== id) el.classList.remove('active'); });
+            document.querySelectorAll('.dd-trigger').forEach(el => { if(el.parentElement.id !== id) el.classList.remove('active'); });
+            const dd = document.getElementById(id);
+            dd.querySelector('.dd-menu').classList.toggle('active');
+            dd.querySelector('.dd-trigger').classList.toggle('active');
+        }
+
+        function selectOption(dropdownId, value, label) {
+            const textEl = document.getElementById('val-' + dropdownId.replace('dd-', ''));
+            if(textEl) textEl.innerText = label;
+            let hiddenId = dropdownId.replace('dd-', '');
+            if(hiddenId.endsWith('-curr')) hiddenId = hiddenId.replace('-curr', '-currency');
+            const hiddenEl = document.getElementById(hiddenId);
+            if(hiddenEl) hiddenEl.value = value;
+            const dd = document.getElementById(dropdownId);
+            dd.querySelector('.dd-menu').classList.remove('active');
+            dd.querySelector('.dd-trigger').classList.remove('active');
+            if(dropdownId.startsWith('dd-conv')) doConvert();
+        }
+
+        function populateCurrencyMenus() {
+            const build = (menuId, excludeAFN) => {
+                let h = '';
+                currencies.forEach(c => {
+                    if(excludeAFN && c.code === 'AFN') return;
+                    const flagUrl = `https://flagcdn.com/${c.flag}.svg`;
+                    h += `<div class="dd-item" onclick="selectOption('${menuId.replace('menu-','dd-')}','${c.code}','${esc(c.name)} (${c.code})')"><span style="display:flex;align-items:center;"><img src="${flagUrl}" style="width:20px;height:14px;margin-left:8px;border-radius:2px;"> ${esc(c.name)}</span><span>${c.code}</span></div>`;
+                });
+                document.getElementById(menuId).innerHTML = h;
+            };
+            build('menu-hawala-curr', false); build('menu-loan-curr', false); build('menu-ex-curr', true);
+            build('menu-conv-from', false); build('menu-conv-to', false);
+        }
+
+        window.addEventListener('click', e => {
+            if(!e.target.closest('.custom-dropdown')) {
+                document.querySelectorAll('.dd-menu').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.dd-trigger').forEach(el => el.classList.remove('active'));
+            }
+        });
+
+        function openAddBalance(currency) {
+            document.getElementById('add-bal-currency').value = currency;
+            document.getElementById('add-bal-title').innerText = 'افزایش موجودی ' + (currency === 'AFN' ? 'افغانی' : 'دالر');
+            document.getElementById('add-bal-amount').value = '';
+            openModal('modal-add-balance');
+        }
+
+        async function saveAddBalance() {
+            const btn = document.getElementById('btn-add-bal');
+            if(btn.disabled) return;
+            const cur = document.getElementById('add-bal-currency').value;
+            const amt = parseFloat(toEnDigits(document.getElementById('add-bal-amount').value));
+            if (isNaN(amt) || amt <= 0) return showAlert('خطا', 'لطفاً یک مبلغ معتبر بزرگتر از صفر وارد کنید.');
+            
+            btn.disabled = true; btn.innerText = "در حال ثبت...";
+            try {
+                await withTimeout(new Promise(res => { Store.addBalance(cur, amt); res(); }), 15000);
+                closeModal('modal-add-balance');
+                showAlert('موفق', `${fmt(amt)} ${cur} به موجودی اضافه شد`);
+            } catch (err) { showAlert('خطا', err.message || 'خطا در ثبت اطلاعات'); }
+            finally { btn.disabled = false; btn.innerText = "ثبت افزایش"; }
+        }
+
+        function openHawalaModal(id=null) {
+            document.getElementById('hawala-edit-id').value = id || '';
+            const hawalas = Store.get('hawalas') || {};
+            if(id && hawalas[id]) {
+                const h = hawalas[id];
+                document.getElementById('hawala-modal-title').innerText = 'ویرایش حواله';
+                document.getElementById('btn-save-hawala').innerText = 'ذخیره تغییرات';
+                document.getElementById('hawala-num').value = h.num;
+                document.getElementById('hawala-receiver').value = h.receiver;
+                document.getElementById('hawala-amount').value = h.amount;
+                const c = currencies.find(x=>x.code===h.currency)||{code:h.currency,name:h.currency,flag:''};
+                document.getElementById('val-hawala-curr').innerText = `${c.name} (${c.code})`;
+                document.getElementById('hawala-currency').value = h.currency;
+            } else {
+                document.getElementById('hawala-modal-title').innerText = 'ثبت حواله جدید';
+                document.getElementById('btn-save-hawala').innerText = 'ثبت حواله';
+                document.getElementById('hawala-num').value = ''; document.getElementById('hawala-receiver').value = '';
+                document.getElementById('hawala-amount').value = '';
+                document.getElementById('val-hawala-curr').innerText = 'افغانی (AFN)';
+                document.getElementById('hawala-currency').value = 'AFN';
+            }
+            openModal('modal-hawala');
+        }
+
+        async function saveHawala() {
+            const btn = document.getElementById('btn-save-hawala');
+            if(btn.disabled) return;
+            const id = document.getElementById('hawala-edit-id').value;
+            const num = document.getElementById('hawala-num').value.trim();
+            const receiver = document.getElementById('hawala-receiver').value.trim();
+            const amount = Number(toEnDigits(document.getElementById('hawala-amount').value));
+            const currency = document.getElementById('hawala-currency').value;
+
+            if(!num || !receiver || !amount || amount <= 0) return showAlert('خطا', 'همه فیلدها و مبلغ معتبر الزامی است');
+            const ts = Date.now(); const hawalas = Store.get('hawalas') || {};
+
+            btn.disabled = true; btn.innerText = "در حال ثبت...";
+            try {
+                await withTimeout(new Promise((resolve, reject) => {
+                    try {
+                        if(id && hawalas[id]) {
+                            const old = hawalas[id];
+                            const diff = amount - old.amount;
+                            if(old.currency === currency) Store.addBalance(currency, -diff);
+                            else { Store.addBalance(old.currency, old.amount); Store.addBalance(currency, -amount); }
+                            Store.update('hawalas/' + id, {num, receiver, amount, currency, timestamp: ts});
+                        } else {
+                            Store.addBalance(currency, -amount);
+                            Store.push('hawalas', {num, receiver, amount, currency, timestamp: ts});
+                        }
+                        resolve();
+                    } catch(err) { reject(err); }
+                }), 15000);
+                closeModal('modal-hawala');
+                showAlert('موفق', 'حواله با موفقیت ثبت شد');
+            } catch(err) { showAlert('خطا', err.message || 'خطا در ثبت'); }
+            finally { btn.disabled = false; btn.innerText = id ? 'ذخیره تغییرات' : 'ثبت حواله'; }
+        }
+
+        function deleteHawala(id) {
+            const hawalas = Store.get('hawalas') || {};
+            if(!hawalas[id]) return;
+            showConfirm('حذف حواله', 'آیا از حذف این حواله مطمئن هستید؟ مبلغ به موجودی برمی‌گردد.', (res) => {
+                if(!res) return;
+                try { const h = hawalas[id]; Store.addBalance(h.currency, h.amount); Store.remove('hawalas/' + id); showAlert('موفق', 'حواله حذف شد'); }
+                catch(err) { showAlert('خطا', err.message || 'خطا در حذف'); }
+            });
+        }
+
+        function openLoanModal(id=null) {
+            document.getElementById('loan-edit-id').value = id || '';
+            const loans = Store.get('loans') || {};
+            if(id && loans[id]) {
+                const l = loans[id];
+                document.getElementById('loan-modal-title').innerText = 'ویرایش قرض';
+                document.getElementById('btn-save-loan').innerText = 'ذخیره تغییرات';
+                document.getElementById('loan-name').value = l.name; document.getElementById('loan-amount').value = l.amount;
+                const c = currencies.find(x=>x.code===l.currency)||{code:l.currency,name:l.currency,flag:''};
+                document.getElementById('val-loan-curr').innerText = `${c.name} (${c.code})`;
+                document.getElementById('loan-currency').value = l.currency;
+                document.getElementById('loan-type').value = l.type;
+                document.getElementById('val-loan-type').innerText = l.type==='owed'?'طلب دارم':'بدهکارم';
+            } else {
+                document.getElementById('loan-modal-title').innerText = 'ثبت قرض جدید';
+                document.getElementById('btn-save-loan').innerText = 'ثبت قرض';
+                document.getElementById('loan-name').value = ''; document.getElementById('loan-amount').value = '';
+                document.getElementById('loan-currency').value = 'AFN';
+                document.getElementById('val-loan-curr').innerText = 'افغانی (AFN)';
+                document.getElementById('loan-type').value = 'owed'; document.getElementById('val-loan-type').innerText = 'طلب دارم';
+            }
+            openModal('modal-loan');
+        }
+
+        async function saveLoan() {
+            const btn = document.getElementById('btn-save-loan');
+            if(btn.disabled) return;
+            const id = document.getElementById('loan-edit-id').value;
+            const name = document.getElementById('loan-name').value.trim();
+            const amount = Number(toEnDigits(document.getElementById('loan-amount').value));
+            const currency = document.getElementById('loan-currency').value;
+            const type = document.getElementById('loan-type').value;
+
+            if(!name || !amount || amount <= 0) return showAlert('خطا', 'نام و مبلغ معتبر الزامی است');
+            const loans = Store.get('loans') || {}; const ts = Date.now();
+
+            btn.disabled = true; btn.innerText = "در حال ثبت...";
+            try {
+                await withTimeout(new Promise(res => {
+                    if(id && loans[id]) Store.update('loans/' + id, {name, amount, currency, type, timestamp: ts});
+                    else Store.push('loans', {name, amount, currency, type, timestamp: ts});
+                    res();
+                }), 15000);
+                closeModal('modal-loan'); showAlert('موفق', 'قرض ثبت شد');
+            } catch(err) { showAlert('خطا', err.message || 'خطا در ثبت'); }
+            finally { btn.disabled = false; btn.innerText = id ? 'ذخیره تغییرات' : 'ثبت قرض'; }
+        }
+
+        function deleteLoan(id) {
+            showConfirm('حذف قرض', 'آیا از حذف این قرض مطمئن هستید؟', (res) => {
+                if(!res) return;
+                try { Store.remove('loans/' + id); showAlert('موفق', 'قرض حذف شد'); }
+                catch(err) { showAlert('خطا', err.message || 'خطا در حذف'); }
+            });
+        }
+
+        function openReceiptModal(id) {
+            const loans = Store.get('loans') || {};
+            if(!loans[id]) return showAlert('خطا', 'قرض پیدا نشد');
+            document.getElementById('receipt-loan-id').value = id;
+            document.getElementById('receipt-amount').value = '';
+            openModal('modal-receipt');
+        }
+
+        async function saveReceipt() {
+            const btn = document.getElementById('btn-save-receipt');
+            if(btn.disabled) return;
+            const id = document.getElementById('receipt-loan-id').value;
+            const pay = Number(toEnDigits(document.getElementById('receipt-amount').value));
+            const loans = Store.get('loans') || {}; const loan = loans[id];
+            
+            if(!loan) return showAlert('خطا', 'قرض پیدا نشد');
+            if(!pay || pay <= 0) return showAlert('خطا', 'مبلغ معتبر نیست');
+            if(pay > loan.amount) return showAlert('خطا', 'مبلغ رسید بیشتر از قرض است');
+
+            btn.disabled = true; btn.innerText = "در حال ثبت...";
+            try {
+                await withTimeout(new Promise(res => {
+                    const newAmt = loan.amount - pay;
+                    if(newAmt === 0) Store.remove('loans/' + id);
+                    else Store.update('loans/' + id, {amount: newAmt});
+
+                    if (loan.type === 'owe') Store.addBalance(loan.currency, -pay);
+                    else Store.addBalance(loan.currency, pay);
+                    res();
+                }), 15000);
+                closeModal('modal-receipt');
+                showAlert('موفق', `رسید ${fmt(pay)} ${loan.currency} ثبت شد`);
+            } catch(err) { showAlert('خطا', err.message || 'خطا در ثبت'); }
+            finally { btn.disabled = false; btn.innerText = "ثبت رسید"; }
+        }
+
+        function openExchangeModal(type) {
+            document.getElementById('exchange-type').value = type;
+            document.getElementById('exchange-title').innerText = type==='buy'?'خرید ارز':'فروش ارز';
+            document.getElementById('ex-rate').value = currentLiveRate ? Math.round(currentLiveRate*100)/100 : '';
+            document.getElementById('ex-amount').value = '';
+            document.getElementById('ex-total').value = '';
+            document.getElementById('ex-profit-preview').innerText = '0 افغانی';
+            document.getElementById('ex-currency').value = 'USD';
+            document.getElementById('val-ex-curr').innerText = 'دالر آمریکا (USD)';
+            openModal('modal-exchange');
+        }
+
+        function calcExchange() {
+            const r = Number(toEnDigits(document.getElementById('ex-rate').value))||0;
+            const a = Number(toEnDigits(document.getElementById('ex-amount').value))||0;
+            const t = r*a;
+            document.getElementById('ex-total').value = t;
+            document.getElementById('ex-profit-preview').innerText = fmt(t*0.01)+' افغانی';
+        }
+
+        async function saveExchange() {
+            const btn = document.getElementById('btn-save-exchange');
+            if(btn.disabled) return;
+            const type = document.getElementById('exchange-type').value;
+            const currency = document.getElementById('ex-currency').value;
+            const rate = Number(toEnDigits(document.getElementById('ex-rate').value));
+            const amount = Number(toEnDigits(document.getElementById('ex-amount').value));
+            const total = rate * amount; const profitEarned = total * 0.01;
+
+            if(currency === 'AFN') return showAlert('خطا', 'ارز تبادل نمی‌تواند افغانی باشد');
+            if(!rate || rate <= 0) return showAlert('خطا', 'نرخ معتبر وارد کنید');
+            if(!amount || amount <= 0) return showAlert('خطا', 'مبلغ معتبر وارد کنید');
+
+            const afnChange = type === 'buy' ? -total : total;
+            const currencyChange = type === 'buy' ? amount : -amount;
+            const ts = Date.now();
+
+            btn.disabled = true; btn.innerText = "در حال ثبت...";
+            try {
+                await withTimeout(new Promise(res => {
+                    Store.addBalance('AFN', afnChange); Store.addBalance(currency, currencyChange);
+                    Store.addProfit(profitEarned);
+                    Store.push('transactions', { type, currency, rate, amount, total, profit: profitEarned, timestamp: ts });
+                    res();
+                }), 15000);
+                closeModal('modal-exchange');
+                showAlert('موفق', `معامله ثبت شد\n\n${type === 'buy' ? 'خرید' : 'فروش'} ${fmt(amount)} ${currency}\nکل: ${fmt(total)} AFN\nسود: ${fmt(profitEarned)} افغانی`);
+            } catch(err) { showAlert('خطا', err.message || 'خطا در ثبت'); }
+            finally { btn.disabled = false; btn.innerText = "ثبت معامله"; }
+        }
+
+        async function saveExpense() {
+            const btn = document.getElementById('btn-save-expense');
+            if(btn.disabled) return;
+            const title = document.getElementById('expense-title').value.trim();
+            const amount = Number(toEnDigits(document.getElementById('expense-amount').value));
+            const note = document.getElementById('expense-note').value.trim();
+
+            if(!title || !amount || amount <= 0) return showAlert('خطا', 'عنوان و مبلغ معتبر الزامی است');
+
+            btn.disabled = true; btn.innerText = "در حال ثبت...";
+            try {
+                await withTimeout(new Promise(res => {
+                    Store.push('expenses', {title, amount, note, timestamp: Date.now()});
+                    Store.addBalance('AFN', -amount); res();
+                }), 15000);
+                closeModal('modal-expense');
+                showAlert('موفق', `هزینه ${fmt(amount)} افغانی ثبت شد`);
+                document.getElementById('expense-title').value = ''; document.getElementById('expense-amount').value = ''; document.getElementById('expense-note').value = '';
+            } catch(err) { showAlert('خطا', err.message || 'خطا در ثبت'); }
+            finally { btn.disabled = false; btn.innerText = "ثبت هزینه"; }
+        }
+
+        function calcInput(v) { calcStr += v; document.getElementById('calc-screen').innerText = calcStr; }
+        function calcClear() { calcStr = ''; document.getElementById('calc-screen').innerText = '0'; }
+        function calcEvaluate() {
+            try { const r = new Function('return '+calcStr)(); document.getElementById('calc-screen').innerText = r; calcStr = String(r); }
+            catch { document.getElementById('calc-screen').innerText='خطا'; calcStr=''; }
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.getElementById('tab-hawala').classList.toggle('active', tab==='hawala');
+            document.getElementById('tab-loan').classList.toggle('active', tab==='loan');
+            document.getElementById('list-title').innerText = tab==='hawala'?'حواله‌ها':'دفتر قرض‌ها';
+            filterItems();
+        }
+
+        function filterItems() {
+            const q = (document.getElementById('global-search').value || '').trim().toLowerCase();
+            const c = document.getElementById('main-list');
+
+            if(activeTab === 'hawala') {
+                const hawalas = Store.get('hawalas') || {};
+                let list = Object.entries(hawalas).map(([id,h]) => ({id, ...h}));
+                if(q) list = list.filter(h => String(h.num || '').toLowerCase().includes(q) || String(h.receiver || '').toLowerCase().includes(q));
+                list.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+                if(!list.length) { c.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">حواله‌ای ثبت نشده است</div>'; return; }
+                c.innerHTML = list.map(h => `
+                    <div class="item-card">
+                        <div class="item-header"><div class="item-title">#${esc(h.num)}</div><div class="item-amount red">${fmt(h.amount)} ${esc(h.currency)}</div></div>
+                        <div class="item-body"><span>${esc(h.receiver)}</span><span>${h.timestamp ? new Date(h.timestamp).toLocaleDateString('fa-AF') : ''}</span></div>
+                        <div class="item-actions">
+                            <button class="btn-sm btn-info" onclick="printHawala('${h.id}')"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> چاپ</button>
+                            <button class="btn-sm btn-edit" onclick="openHawalaModal('${h.id}')">ویرایش</button>
+                            <button class="btn-sm btn-del" onclick="deleteHawala('${h.id}')">حذف</button>
+                        </div>
+                    </div>`).join('');
+            } else {
+                const loans = Store.get('loans') || {};
+                let list = Object.entries(loans).map(([id,l]) => ({id, ...l}));
+                if(q) list = list.filter(l => String(l.name || '').toLowerCase().includes(q));
+                list.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+                if(!list.length) { c.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">قرضی ثبت نشده است</div>'; return; }
+                c.innerHTML = list.map(l => {
+                    const isOwed = l.type === 'owed';
+                    return `
+                    <div class="item-card">
+                        <div class="item-header"><div class="item-title">${isOwed?'طلب از':'بدهی به'} ${esc(l.name)}</div><div class="item-amount ${isOwed?'green':'red'}">${fmt(l.amount)} ${esc(l.currency)}</div></div>
+                        <div class="item-actions">
+                            <button class="btn-sm btn-info" onclick="printLoan('${l.id}')"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> چاپ</button>
+                            <button class="btn-sm btn-pay" onclick="openReceiptModal('${l.id}')">رسید</button>
+                            <button class="btn-sm btn-edit" onclick="openLoanModal('${l.id}')">ویرایش</button>
+                            <button class="btn-sm btn-del" onclick="deleteLoan('${l.id}')">حذف</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        function renderTransactions() {
+            const transactions = Store.get('transactions') || {};
+            const list = Object.entries(transactions).map(([id,t]) => ({id, ...t}));
+            list.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+            let totalBuy = 0, totalSell = 0, totalProfit = 0;
+            list.forEach(t => { if(t.type === 'buy') totalBuy += Number(t.total)||0; else totalSell += Number(t.total)||0; totalProfit += Number(t.profit)||0; });
+            document.getElementById('stat-buys').innerText = fmt(totalBuy); document.getElementById('stat-sells').innerText = fmt(totalSell);
+            document.getElementById('stat-count').innerText = fmt(list.length); document.getElementById('stat-profit').innerText = fmt(totalProfit);
+            const c = document.getElementById('transactions-list');
+            if(!list.length) { c.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">معامله‌ای ثبت نشده</div>'; return; }
+            c.innerHTML = list.slice(0, 100).map(t => `
+                <div class="item-card">
+                    <div class="item-header"><div class="item-title">${t.type==='buy'?'خرید':'فروش'} ${esc(t.currency)}</div><div class="item-amount ${t.type==='buy'?'green':'red'}">${fmt(t.total)} AFN</div></div>
+                    <div class="item-body"><span>${fmt(t.amount)} ${esc(t.currency)} × ${fmt(t.rate)}</span><span>سود: ${fmt(t.profit)}</span></div>
+                    <div class="item-body" style="justify-content:flex-end;"><span>${t.timestamp ? new Date(t.timestamp).toLocaleString('fa-AF') : ''}</span></div>
+                </div>`).join('');
+        }
+
+        function setReportPeriod(p, btn) {
+            reportPeriod = p; document.querySelectorAll('#page-reports .btn-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderReports();
+        }
+        function periodStart(p) {
+            const now = new Date();
+            if(p==='today') return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            if(p==='week') return Date.now() - 7*24*60*60*1000; if(p==='month') return Date.now() - 30*24*60*60*1000; return 0;
+        }
+        function renderReports() {
+            const start = periodStart(reportPeriod); const transactions = Store.get('transactions') || {}; const expenses = Store.get('expenses') || {};
+            const txs = Object.values(transactions).filter(t => (t.timestamp||0) >= start); const exps = Object.values(expenses).filter(e => (e.timestamp||0) >= start);
+            let profit = 0; txs.forEach(t => profit += Number(t.profit)||0); let expTotal = 0; exps.forEach(e => expTotal += Number(e.amount)||0);
+            document.getElementById('rep-profit').innerText = fmt(profit); document.getElementById('rep-count').innerText = fmt(txs.length);
+            document.getElementById('rep-expenses').innerText = fmt(expTotal); document.getElementById('rep-net').innerText = fmt(profit - expTotal);
+            const c = document.getElementById('reports-detail'); let html = '<div class="section-header"><div class="section-title" style="font-size:13px;">معاملات اخیر</div></div>';
+            if(!txs.length) html += '<div style="text-align:center;color:var(--text-muted);padding:10px;">موردی ثبت نشده است</div>';
+            txs.sort((a,b) => (b.timestamp||0) - (a.timestamp||0)).slice(0, 20).forEach(t => {
+                html += `<div class="item-card" style="padding:10px;"><div class="item-body"><span>${t.type==='buy'?'خرید':'فروش'} ${esc(t.currency)}</span><span style="color:var(--success);">+${fmt(t.profit)}</span></div></div>`;
+            });
+            if(exps.length) {
+                html += '<div class="section-header" style="margin-top:15px;"><div class="section-title" style="font-size:13px;">هزینه‌ها</div></div>';
+                exps.sort((a,b) => (b.timestamp||0) - (a.timestamp||0)).slice(0, 20).forEach(e => {
+                    html += `<div class="item-card" style="padding:10px;"><div class="item-body"><span>${esc(e.title)}</span><span style="color:var(--danger);">-${fmt(e.amount)}</span></div></div>`;
+                });
+            }
+            c.innerHTML = html;
+        }
+        function exportReportCSV() {
+            const start = periodStart(reportPeriod); const transactions = Store.get('transactions') || {};
+            const txs = Object.values(transactions).filter(t => (t.timestamp||0) >= start);
+            let csv = '\uFEFF' + 'تاریخ,نوع,ارز,مبلغ,نرخ,کل افغانی,سود\n';
+            txs.forEach(t => { csv += `${new Date(t.timestamp).toLocaleString('fa-AF')},${t.type==='buy'?'خرید':'فروش'},${t.currency},${t.amount},${t.rate},${t.total},${t.profit||0}\n`; });
+            downloadFile(csv, `report-${reportPeriod}-${Date.now()}.csv`, 'text/csv');
+        }
+
+        function doConvert() {
+            const from = document.getElementById('conv-from').value; const to = document.getElementById('conv-to').value;
+            const amt = Number(toEnDigits(document.getElementById('conv-amount').value)) || 0;
+            const resultEl = document.getElementById('conv-result'); const rateInfo = document.getElementById('conv-rate-info');
+            if(from === to) { resultEl.innerText = fmt(amt); rateInfo.innerText = 'نرخ: 1'; return; }
+            try {
+                if(liveRatesCache[from] && liveRatesCache[to]) {
+                    const rate = liveRatesCache[from] / liveRatesCache[to];
+                    resultEl.innerText = fmt((amt*rate).toFixed(2));
+                    rateInfo.innerText = `1 ${from} = ${fmt(rate)} ${to}`;
+                } else { resultEl.innerText = fmt(amt); rateInfo.innerText = 'نرخ این جفت‌ارز در دسترس نیست'; }
+            } catch { resultEl.innerText = '---'; }
+        }
+        function swapConverter() {
+            const f = document.getElementById('conv-from').value; const t = document.getElementById('conv-to').value;
+            document.getElementById('conv-from').value = t; document.getElementById('conv-to').value = f;
+            const cf = currencies.find(x=>x.code===t), ct = currencies.find(x=>x.code===f);
+            document.getElementById('val-conv-from').innerText = `${cf.name} (${cf.code})`;
+            document.getElementById('val-conv-to').innerText = `${ct.name} (${ct.code})`;
+            doConvert();
+        }
+
+        function printHawala(id) {
+            const hawalas = Store.get('hawalas') || {}; const h = hawalas[id]; if(!h) return;
+            const html = `<div class="print-receipt" style="background:#fff;color:#000;padding:20px;font-family:Tahoma;"><h2 style="text-align:center;color:#b8860b;">صرافی هوشمند</h2><h3 style="text-align:center;">رسید حواله</h3><hr><p><b>نمبر حواله:</b> ${esc(h.num)}</p><p><b>گیرنده:</b> ${esc(h.receiver)}</p><p><b>مبلغ:</b> ${fmt(h.amount)} ${esc(h.currency)}</p><p><b>تاریخ:</b> ${new Date(h.timestamp).toLocaleString('fa-AF')}</p><hr><p style="text-align:center;font-size:11px;">با تشکر از اعتماد شما</p></div>`;
+            document.getElementById('print-content').innerHTML = html; openModal('modal-print');
+        }
+        function printLoan(id) {
+            const loans = Store.get('loans') || {}; const l = loans[id]; if(!l) return;
+            const html = `<div class="print-receipt" style="background:#fff;color:#000;padding:20px;font-family:Tahoma;"><h2 style="text-align:center;color:#b8860b;">صرافی هوشمند</h2><h3 style="text-align:center;">${l.type==='owed'?'رسید طلب':'رسید بدهی'}</h3><hr><p><b>نام:</b> ${esc(l.name)}</p><p><b>مبلغ:</b> ${fmt(l.amount)} ${esc(l.currency)}</p><p><b>تاریخ:</b> ${new Date(l.timestamp).toLocaleString('fa-AF')}</p><hr></div>`;
+            document.getElementById('print-content').innerHTML = html; openModal('modal-print');
+        }
+        async function shareReceipt() {
+            const text = document.getElementById('print-content').innerText;
+            if(navigator.share) { try { await navigator.share({ title: 'رسید صرافی', text }); } catch(e) {} }
+            else { window.open('https://wa.me/?text='+encodeURIComponent(text)); }
+        }
+
+        function backupData() {
+            const data = { balances: Store.get('balances'), hawalas: Store.get('hawalas'), loans: Store.get('loans'), transactions: Store.get('transactions'), expenses: Store.get('expenses'), profit: Store.get('profit'), exportDate: new Date().toISOString(), version: 'v4' };
+            downloadFile(JSON.stringify(data, null, 2), `sarafi-backup-${Date.now()}.json`, 'application/json');
+            showAlert('موفق', 'فایل پشتیبان با موفقیت دانلود شد.');
+        }
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type }); const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function closeDay() {
+            const today = new Date(); today.setHours(0,0,0,0); const start = today.getTime();
+            const transactions = Store.get('transactions') || {}; const expenses = Store.get('expenses') || {}; const bals = Store.get('balances') || {AFN:0, USD:0};
+            const txs = Object.values(transactions).filter(t => (t.timestamp||0) >= start); const exps = Object.values(expenses).filter(e => (e.timestamp||0) >= start);
+            let profit = 0; txs.forEach(t => profit += Number(t.profit)||0); let exp = 0; exps.forEach(e => exp += Number(e.amount)||0);
+            const msg = `گزارش امروز\n\nموجودی افغانی: ${fmt(bals.AFN)}\nموجودی دالر: ${fmt(bals.USD)}\n\nتعداد معاملات: ${fmt(txs.length)}\nسود امروز: ${fmt(profit)}\nهزینه‌ها: ${fmt(exp)}\nسود خالص: ${fmt(profit - exp)}`;
+            showAlert('بستن صندوق', msg);
+        }
+
+        function openPinSetup() {
+            if(storedPin) document.getElementById('btn-remove-pin').style.display = 'block';
+            else document.getElementById('btn-remove-pin').style.display = 'none';
+            document.getElementById('pin-new').value = ''; document.getElementById('pin-confirm').value = '';
+            openModal('modal-pin-setup');
+        }
+        function savePin() {
+            const p1 = document.getElementById('pin-new').value; const p2 = document.getElementById('pin-confirm').value;
+            if(p1.length !== 4 || !/^\d+$/.test(p1)) return showAlert('خطا', 'PIN باید ۴ رقم عددی باشد');
+            if(p1 !== p2) return showAlert('خطا', 'تکرار PIN مطابقت ندارد');
+            localStorage.setItem('sarafi_pin', p1); storedPin = p1; updatePinSettingText(); showAlert('موفق', 'PIN ذخیره شد'); closeModal('modal-pin-setup');
+        }
+        function removePin() {
+            showConfirm('حذف PIN', 'آیا می‌خواهید قفل برنامه را حذف کنید؟', (res) => {
+                if(!res) return;
+                localStorage.removeItem('sarafi_pin'); storedPin = null; updatePinSettingText(); showAlert('موفق', 'PIN حذف شد'); closeModal('modal-pin-setup');
+            });
+        }
+        function updatePinSettingText() {
+            const el = document.getElementById('pin-setting-text');
+            if(el) el.innerHTML = storedPin ? 'قفل برنامه (PIN)<small style="color:var(--success);">فعال</small>' : 'قفل برنامه (PIN)<small>غیرفعال</small>';
+        }
+        function forgotPin() {
+            localStorage.removeItem('sarafi_pin'); storedPin = null; document.getElementById('pin-screen').style.display = 'none'; showAlert('توجه', 'قفل PIN برداشته شد. شما می‌توانید از تنظیمات رمز جدید بگذارید.');
+        }
+        function pinInput(d) {
+            if(pinBuffer.length >= 4) return; pinBuffer += d; updatePinDots();
+            if(pinBuffer.length === 4) setTimeout(checkPin, 200);
+        }
+        function pinDel() { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); }
+        function updatePinDots() { document.querySelectorAll('.pin-dot').forEach((d,i) => d.classList.toggle('filled', i < pinBuffer.length)); }
+        function checkPin() {
+            if(pinBuffer === storedPin) document.getElementById('pin-screen').style.display = 'none';
+            else { pinBuffer = ''; updatePinDots(); showAlert('خطا', 'PIN اشتباه است'); }
+        }
+
+        function switchPage(p) {
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            document.getElementById('page-'+p).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === p));
+            if(p === 'transactions') renderTransactions();
+            if(p === 'reports') renderReports();
+        }
+
+        window.onload = () => {
+            if(localStorage.getItem('sarafi_theme') === 'light') toggleTheme();
+            updatePinSettingText();
+            
+            // ثبت Service Worker برای نصب روی گوشی (PWA)
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('service-worker.js')
+                        .then(registration => { console.log('ServiceWorker registered:', registration.scope); })
+                        .catch(error => { console.log('ServiceWorker registration failed:', error); });
+                });
+            }
+        };
+    </script>
+</body>
+</html>
